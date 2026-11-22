@@ -1,0 +1,18 @@
+{
+  "grammars": [
+    {
+      "name": "linkerscript",
+      "camelcase": "Linkerscript",
+      "scope": "source.ld",
+      "path": ".",
+      "file-types": ["ld", "lds"]
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "license": "MIT",
+    "description": "GNU ld linker scripts",
+    "links": { "repository": "https://github.com/amaanq/tree-sitter-linkerscript" }
+  },
+  "bindings": { "c": false, "go": false, "node": false, "python": false, "rust": false, "swift": false }
+}

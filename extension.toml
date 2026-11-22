@@ -1,0 +1,159 @@
+# Linker scripts (GNU ld's, which lld reads too): highlighting, folding, and
+# symbols from a Tree-sitter grammar compiled to WebAssembly; problems as
+# you type and the linker's when you save; completion and hover; and a
+# Memory Layout view of the program a build linked. See Flareite's
+# docs/extensions.md.
+id = "flareite.linker-script"
+name = "Linker Script"
+version = "1.0.0"
+description = "GNU ld linker scripts: highlighting, problems as you type and from the linker, completion, and a memory layout view."
+author = "Flareite"
+icon = "icon.svg"
+api_version = "2"
+entrypoint = "target/wasm32-unknown-unknown/release/linker_script.wasm"
+activation = ["on-language:linkerscript", "on-view:layout"]
+# Checks scripts again when settings change, and watches the open folder.
+events = ["folder-changed", "configuration-changed"]
+
+[engines]
+flareite = ">=0.1.0"
+
+# documents_read: the open scripts, for problems, completion, and hover.
+# files_read: the folder's scripts and those they INCLUDE, the linked
+# program the Memory Layout view reads, and watching the folder for saves.
+# processes: the linker, run on saved scripts.
+[permissions]
+documents_read = true
+files_read = true
+processes = true
+
+[build]
+command = "cargo"
+args = ["build", "--release"]
+watch = ["src", "Cargo.toml"]
+
+[[languages]]
+id = "linkerscript"
+name = "Linker Script"
+file_extensions = ["ld", "lds"]
+grammar = "grammars/tree-sitter-linkerscript.wasm"
+grammar_name = "linkerscript"
+highlights = "queries/highlights.scm"
+folds = "queries/folds.scm"
+symbols = "queries/symbols.scm"
+block_comment = ["/*", "*/"]
+brackets = [["{", "}"], ["(", ")"]]
+auto_closing_pairs = [
+  [
+    "{",
+    "}",
+  ],
+  [
+    "(",
+    ")",
+  ],
+  { open = '"', close = '"', not_in = [
+    "string",
+    "comment",
+  ] },
+  { open = "/*", close = " */", not_in = [
+    "string",
+    "comment",
+  ] },
+]
+
+# LLVM's linker, and Rust's copy of it (rustup installs it); GNU ld when the
+# linker setting chooses it. Elsewhere set where they are:
+# [extensions.programs] "flareite.linker-script.lld" = "C:/LLVM/bin/ld.lld.exe".
+[[programs]]
+name = "lld"
+command = "ld.lld"
+
+[[programs]]
+name = "rust-lld"
+
+[[programs]]
+name = "ld"
+
+[[completion_providers]]
+languages = ["linkerscript"]
+trigger_characters = ["(", ">", ":"]
+
+[[hover_providers]]
+languages = ["linkerscript"]
+
+[[code_action_providers]]
+languages = ["linkerscript"]
+
+# Memory regions nearly full (90% or more) and full.
+[colors.high]
+description = "Memory regions 90% full or more"
+dark = "#e2c08d"
+light = "#895503"
+
+[colors.full]
+description = "Memory regions full or overflowing"
+dark = "#f48771"
+light = "#c72e0f"
+
+[[view_containers]]
+id = "linker"
+title = "Linker"
+icon = "cube"
+
+[[views]]
+id = "layout"
+title = "Memory Layout"
+container = "linker"
+
+[[menus]]
+location = "view/title"
+view = "layout"
+command = "flareite.linker-script.refreshLayout"
+inline = true
+icon = "refresh"
+
+[[menus]]
+location = "view/title"
+view = "layout"
+command = "flareite.linker-script.chooseProgram"
+inline = true
+icon = "open"
+
+[[commands]]
+id = "flareite.linker-script.chooseProgram"
+title = "Choose Linked Program…"
+
+[[commands]]
+id = "flareite.linker-script.refreshLayout"
+title = "Refresh Memory Layout"
+
+[[commands]]
+id = "flareite.linker-script.check"
+title = "Check Linker Script with the Linker"
+
+[[commands]]
+id = "flareite.linker-script.goTo"
+title = "Go to Definition in a Linker Script"
+hidden = true
+
+[configuration.linker]
+type = "string"
+default = "auto"
+choices = ["auto", "ld.lld", "rust-lld", "ld", "off"]
+description = "The linker that checks scripts when they're saved: auto uses ld.lld, or else rust-lld; ld is GNU ld (for the targets it was built for); off doesn't check."
+
+[configuration.emulation]
+type = "string"
+default = ""
+description = "The linker's -m emulation, such as elf_x86_64, armelf, or elf32lriscv. Empty: from the script's OUTPUT_FORMAT or OUTPUT_ARCH, else elf_x86_64 for lld, and GNU ld's own default."
+
+[configuration.arguments]
+type = "string"
+default = ""
+description = "More arguments for the linker, separated by spaces, such as `-L ldscripts` or `--defsym=STACK_SIZE=0x1000`."
+
+[configuration.program]
+type = "string"
+default = ""
+description = "The program the Memory Layout view shows, relative to the open folder (put it in the folder's settings), such as target/x86_64-unknown-none/debug/kernel. Empty: the one chosen in the view."

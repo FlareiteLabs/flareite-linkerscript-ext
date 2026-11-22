@@ -1,0 +1,22 @@
+[package]
+name = "linker-script"
+description = "GNU ld linker scripts for Flareite: highlighting, completion, problems, a linker check, and a memory layout view."
+version = "1.0.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# The editor's repository, checked out beside this one.
+flareite-extension-api = { path = "../editor/crates/flareite-extension-api" }
+# Rust's symbol names, legacy and v0, for the Memory Layout view.
+rustc-demangle = { version = "0.1", default-features = false }
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true

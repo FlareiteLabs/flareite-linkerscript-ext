@@ -1,0 +1,4 @@
+/target/
+# What tree-sitter generates from grammar/grammar.js (see README).
+/grammar/src/
+/grammar/*.wasm
